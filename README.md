@@ -1,20 +1,12 @@
 # MyTodoList - Test task for review
 <br />
-<!--<p align="center">-->
-<!--  <a href="https://github.com/Mutagrey/BreathCounter/blob/main/Screens/Icon.png">-->
-<!--    <img style="border-radius: 45px 0.1px 45px 0.1px;" src="/Screens/Icon.png" alt="Logo" width="100" height="100" >-->
-<!--  </a>-->
-<!--  <p align="center">-->
-<!--       Listen to your breathing!-->
-<!--  </p>-->
-<!--</p>-->
 
 <p align="row">
-<img src= "https://github.com/Mutagrey/BreathCounter/blob/main/Screens/demo.gif" width="272" >
-<img src= "https://github.com/Mutagrey/BreathCounter/blob/main/Screens/screen1.png" width="272" >
-<img src= "https://github.com/Mutagrey/BreathCounter/blob/main/Screens/screen2.png" width="272" >
-<img src= "https://github.com/Mutagrey/BreathCounter/blob/main/Screens/screen3.png" width="272" >
-<img src= "https://github.com/Mutagrey/BreathCounter/blob/main/Screens/screen4.png" width="272" >
+<img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen1.jpeg" width="272" >
+<img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen2.jpeg" width="272" >
+<img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen3.png" width="272" >
+<img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen4.png" width="272" >
+<img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen5.png" width="272" >
 </p>
 
 ## Требования:
@@ -27,7 +19,7 @@
 - Возможность удаления задачи.
 - Возможность поиска по задачам.
 
-2. Загрузка списка задач из dummyjson api: <a href="https://dummyjson.com/todos">. При первом
+2. Загрузка списка задач из dummyjson api: <a href="https://dummyjson.com/todos"/>. При первом
 запуске приложение должно загрузить список задач из указанного json api.
 
 3. Многопоточность:
@@ -44,17 +36,18 @@
 6. Напишите юнит-тесты для основных компонентов приложения
 
 **Будет бонусом**:
+
 7. Архитектура VIPER: Приложение должно быть построено с использованием
 архитектуры VIPER. Каждый модуль должен быть четко разделен на компоненты: View,
 Interactor, Presenter, Entity, Router.
 
 ## Requirements
 
-- iOS 16.0+
-- Xcode 14.0
+- iOS 17.0+
+- Xcode 15.0+
 
 ## Meta
 
-Sergey Petrov  – sergreypetrovmtgrey@gmail.com
+Sergey Petrov  – mutagrey@yandex.ru
 
 Free to use.

@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		4118EC382CED2ABA00C780CE /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 4118EC362CED2AB100C780CE /* README.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		419E19BE2CE7731400AC5FEB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4118EC362CED2AB100C780CE /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		419E19A82CE7731200AC5FEB /* MyToDoList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyToDoList.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		419E19BD2CE7731400AC5FEB /* MyToDoListTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyToDoListTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		419E19C72CE7731400AC5FEB /* MyToDoListUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyToDoListUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -73,6 +78,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		4118EC492CED2EE300C780CE /* Screenshots */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Screenshots;
+			sourceTree = "<group>";
+		};
 		419E19AA2CE7731200AC5FEB /* MyToDoList */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -122,6 +132,8 @@
 		419E199F2CE7731200AC5FEB = {
 			isa = PBXGroup;
 			children = (
+				4118EC362CED2AB100C780CE /* README.md */,
+				4118EC492CED2EE300C780CE /* Screenshots */,
 				419E19AA2CE7731200AC5FEB /* MyToDoList */,
 				419E19C02CE7731400AC5FEB /* MyToDoListTests */,
 				419E19CA2CE7731400AC5FEB /* MyToDoListUITests */,
@@ -155,6 +167,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				4118EC492CED2EE300C780CE /* Screenshots */,
 				419E19AA2CE7731200AC5FEB /* MyToDoList */,
 			);
 			name = MyToDoList;
@@ -259,6 +272,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4118EC382CED2ABA00C780CE /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
