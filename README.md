@@ -19,7 +19,7 @@
 - Возможность удаления задачи.
 - Возможность поиска по задачам.
 
-2. Загрузка списка задач из dummyjson api: <a href="https://dummyjson.com/todos"/>. При первом
+2. Загрузка списка задач из dummyjson api: [View Tasks from DummyJSON API](https://dummyjson.com/todos). При первом
 запуске приложение должно загрузить список задач из указанного json api.
 
 3. Многопоточность:
