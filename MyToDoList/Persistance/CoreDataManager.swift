@@ -9,8 +9,8 @@ import CoreData
 
 final class CoreDataManager {
     
-//    private let queue = DispatchQueue(label: "CoreDataManager.queue", qos: .userInitiated)
-    private let backgroundContext: NSManagedObjectContext
+    static let shared = CoreDataManager()
+    
     private let container: NSPersistentContainer
 
     @MainActor
@@ -45,75 +45,73 @@ final class CoreDataManager {
         }
         container.viewContext.automaticallyMergesChangesFromParent = true
 //        container.viewContext.mergePolicy = NSMergePolicy.mergeByPropertyStoreTrump
-        backgroundContext = container.newBackgroundContext()
-//        backgroundContext.mergePolicy = NSMergePolicy.mergeByPropertyStoreTrump
-//        backgroundContext.automaticallyMergesChangesFromParent = true
     }
 }
 
 extension CoreDataManager: DataManager {
 
     func fetchData(sortDescriptor: NSSortDescriptor?, predicate: NSPredicate?, _ completion: @escaping (Result<[TodoItem], any Error>) -> Void) {
-        self.backgroundContext.perform { [weak self] in
+        let context = self.container.viewContext
+        // Perform async code on the Main Thread
+        context.perform {
             let request = TodoItem.fetchRequest()
-            if let sortDescriptor {
-                request.sortDescriptors = [sortDescriptor]
-            }
+            request.sortDescriptors = sortDescriptor.map { [$0] } ?? []
             request.predicate = predicate
             do {
-                let data = try self?.backgroundContext.fetch(request)
-                DispatchQueue.main.async {
-                    completion(.success(data ?? []))
-                }
+                let data = try context.fetch(request)
+                completion(.success(data))
             } catch let error {
-                DispatchQueue.main.async {
-                    completion(.failure(error))
-                }
+                completion(.failure(error))
             }
         }
     }
     
     func addNew(_ completion: @escaping (TodoItem) -> Void) {
-        self.backgroundContext.perform { [weak self] in
-            guard let self else { return }
-            let newItem = TodoItem(context: self.backgroundContext)
-            self.saveData {
-                DispatchQueue.main.async {
-                    completion(newItem)
+        self.container.performBackgroundTask { context in
+            let newItem = TodoItem(context: context)
+            self.saveData(context: context)
+            DispatchQueue.main.async {
+                if let object = context.object(with: newItem.objectID) as? TodoItem {
+                    completion(object)
                 }
             }
         }
     }
 
-    private func saveData(completion: (() -> Void)? = nil) {
-        backgroundContext.perform { [weak self] in
-            do {
-                try self?.backgroundContext.save()
-                DispatchQueue.main.async {
-                    completion?()
-                }
-            } catch {
-                print("Failed to save item: \(error)")
+    private func saveData(context: NSManagedObjectContext) {
+        do {
+            if context.hasChanges {
+                try context.save()
             }
+        } catch {
+            print("Failed to save item: \(error)")
+        }
+    }
+    
+    func saveData() {
+        let context = self.container.viewContext
+        context.perform {
+            self.saveData(context: context)
         }
     }
     
     func save(_ apiData: [TodoServiceItem]) {
-        backgroundContext.perform { [weak self] in
+        self.container.performBackgroundTask { context in
             for todo in apiData {
-                _ = TodoItem(serviceItem: todo, context: self?.backgroundContext ?? NSManagedObjectContext.init(concurrencyType: .privateQueueConcurrencyType))
+                _ = TodoItem(serviceItem: todo, context: context)
             }
-            self?.saveData()
+            self.saveData(context: context)
         }
     }
     
     func delete(_ data: TodoItem) {
-        let id = data.objectID
-        backgroundContext.perform { [weak self] in
-            if let deleteItem = self?.backgroundContext.object(with: id) {
-                self?.backgroundContext.delete(deleteItem)
-                self?.saveData()
-            }
+        let context = self.container.viewContext
+        // Perform async code on the Main Thread
+        context.performAndWait {
+            // Safely fetch the object to delete using its object ID
+            let deleteItem = context.object(with: data.objectID)
+            context.delete(deleteItem)
+            self.saveData(context: context)
         }
     }
 }

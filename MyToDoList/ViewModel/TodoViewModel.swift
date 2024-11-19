@@ -74,7 +74,7 @@ final class TodoViewModel: ObservableObject {
         showError = false
         
         // SortDescriptor and Predicate
-        let sort = NSSortDescriptor(keyPath: \TodoItem.createdAt, ascending: true)
+        let sort = NSSortDescriptor(keyPath: \TodoItem.createdAt, ascending: false)
         let predicate: NSPredicate
         if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             predicate = NSPredicate(value: true)
@@ -138,21 +138,15 @@ extension TodoViewModel {
     
     /// Delete Todo
     func deleteTodo(_ item: TodoItem) {
-//        if let index = self.todos.firstIndex(where: { $0.objectID == item.objectID }) {
-//            self.todos.remove(at: index)
-//        }
+        if let index = self.todos.firstIndex(where: { $0.objectID == item.objectID }) {
+            self.todos.remove(at: index)
+        }
         dataManager.delete(item)
-        fetchTodosWithDataManager()
+//        fetchTodosWithDataManager()
     }
     
     ///  Update
     func save() {
-        dataManager.save([])
-    }
-    
-    ///  Update
-    func update() {
-        dataManager.save([])
-        fetchTodosWithDataManager()
+        dataManager.saveData()
     }
 }

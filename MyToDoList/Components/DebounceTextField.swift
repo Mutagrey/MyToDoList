@@ -46,15 +46,18 @@ struct DebounceTextField: View {
         Group {
             switch type {
             case .textfield:
-                TextField(titleKey, text: $vm.text, axis: axis)
+                TextField(titleKey, text: $text, axis: axis)
             case .securefield:
-                SecureField(titleKey, text: $vm.text)
+                SecureField(titleKey, text: $text)
             case .textEditor:
-                TextEditor(text: $vm.text)
+                TextEditor(text: $text)
             }
         }
+        .onChange(of: text) { oldValue, newValue in
+            guard oldValue != newValue else { return }
+            vm.text = newValue
+        }
         .onReceive(vm.saveRequest) { text in
-            self.text = text
             onSave?(text)
         }
     }
@@ -73,6 +76,10 @@ extension DebounceTextField {
         ) {
             self.debounceTime = debounceTime
             addObservers()
+        }
+        
+        deinit {
+            cancellables.forEach({ $0.cancel() })
         }
         
         private func addObservers() {

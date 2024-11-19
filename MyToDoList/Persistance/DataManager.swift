@@ -19,5 +19,6 @@ protocol DataManager {
     func fetchData(sortDescriptor: NSSortDescriptor?, predicate: NSPredicate?, _ completion: @escaping (Result<[TodoItem], Error>) -> Void)
     func addNew(_ completion: @escaping (TodoItem) -> Void)
     func save(_ apiData: [TodoServiceItem])
+    func saveData()
     func delete(_ data: TodoItem)
 }
