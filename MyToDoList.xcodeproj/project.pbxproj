@@ -29,9 +29,56 @@
 		419E19C72CE7731400AC5FEB /* MyToDoListUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyToDoListUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		419E19E42CE7746900AC5FEB /* Exceptions for "MyToDoList" folder in "MyToDoListTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				API/APIService.swift,
+				API/TodoService.swift,
+				Components/DebounceTextField.swift,
+				"Model/TodoItem+.swift",
+				Model/TodoServiceItem.swift,
+				Navigation/Route.swift,
+				Navigation/Router.swift,
+				Persistance/CoreDataManager.swift,
+				Persistance/DataManager.swift,
+				View/TodoEditView.swift,
+				View/TodoItemView.swift,
+				View/TodoListView.swift,
+				ViewModel/TodoError.swift,
+				ViewModel/TodoViewModel.swift,
+			);
+			target = 419E19BC2CE7731400AC5FEB /* MyToDoListTests */;
+		};
+		419E19E52CE7746900AC5FEB /* Exceptions for "MyToDoList" folder in "MyToDoListUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				API/APIService.swift,
+				API/TodoService.swift,
+				Components/DebounceTextField.swift,
+				"Model/TodoItem+.swift",
+				Model/TodoServiceItem.swift,
+				Navigation/Route.swift,
+				Navigation/Router.swift,
+				Persistance/CoreDataManager.swift,
+				Persistance/DataManager.swift,
+				View/TodoEditView.swift,
+				View/TodoItemView.swift,
+				View/TodoListView.swift,
+				ViewModel/TodoError.swift,
+				ViewModel/TodoViewModel.swift,
+			);
+			target = 419E19C62CE7731400AC5FEB /* MyToDoListUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		419E19AA2CE7731200AC5FEB /* MyToDoList */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				419E19E42CE7746900AC5FEB /* Exceptions for "MyToDoList" folder in "MyToDoListTests" target */,
+				419E19E52CE7746900AC5FEB /* Exceptions for "MyToDoList" folder in "MyToDoListUITests" target */,
+			);
 			path = MyToDoList;
 			sourceTree = "<group>";
 		};
@@ -321,6 +368,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -378,6 +426,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -399,7 +448,9 @@
 				DEVELOPMENT_TEAM = 6AZ8WMLP5K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_FILE = "";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -428,7 +479,9 @@
 				DEVELOPMENT_TEAM = 6AZ8WMLP5K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_FILE = "";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

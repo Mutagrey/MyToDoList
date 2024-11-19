@@ -6,3 +6,8 @@
 //
 
 import Foundation
+
+enum TodoError: LocalizedError {
+    case invalidData
+    case invalidURL
+}

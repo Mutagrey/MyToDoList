@@ -9,12 +9,15 @@ import SwiftUI
 
 @main
 struct MyToDoListApp: App {
-    let persistenceController = PersistenceController.shared
 
+    @StateObject private var vm = TodoViewModel(dataManager: CoreDataManager(inMemory: false), apiService: TodoService())
+    @StateObject private var router = Router()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                .environmentObject(vm)
+                .environmentObject(router)
         }
     }
 }
