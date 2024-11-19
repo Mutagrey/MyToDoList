@@ -4,9 +4,9 @@
 <p align="row">
 <img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen1.jpeg" width="272" >
 <img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen2.jpeg" width="272" >
-<img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen3.png" width="272" >
-<img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen4.png" width="272" >
-<img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen5.png" width="272" >
+<img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen3.PNG" width="272" >
+<img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen4.PNG" width="272" >
+<img src= "https://github.com/Mutagrey/MyToDoList/blob/main/Screenshots/screen5.PNG" width="272" >
 </p>
 
 ## Требования:
