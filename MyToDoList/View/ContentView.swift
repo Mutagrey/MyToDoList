@@ -9,43 +9,62 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
+    
+    @AppStorage("isFirstLaunch") private var isFirstLaunch = true
     @Environment(\.managedObjectContext) private var viewContext
 
     @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
+        sortDescriptors: [NSSortDescriptor(keyPath: \TodoItem.createdAt, ascending: true)],
         animation: .default)
-    private var items: FetchedResults<Item>
+    private var items: FetchedResults<TodoItem>
+    @State private var searchText = ""
+    @State private var path = NavigationPath()
 
     var body: some View {
-        NavigationView {
+        NavigationStack(path: $path) {
             List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+                ForEach(items) { todo in
+                    TodoItemView(todo: todo) { action in
+                        switch action {
+                        case .edit:
+                            path.append(todo)
+                        case .share:
+                            break
+                        case .delete:
+                            viewContext.delete(todo)
+                        }
                     }
                 }
                 .onDelete(perform: deleteItems)
             }
+            .listStyle(.plain)
+            .navigationTitle("Tasks")
+            .navigationDestination(for: TodoItem.self) {
+                TodoEditView(todo: $0)
+            }
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                ToolbarItem(placement: .bottomBar) {
+                    HStack {
+                        Spacer()
+                        Text("\(items.count) tasks")
+                        Spacer()
+                        Button {
+                            let newItem = TodoItem(context: viewContext)
+                            path.append(newItem)
+                        } label: {
+                            Image(systemName: "square.and.pencil")
+                        }
                     }
                 }
             }
-            Text("Select an item")
+            .searchable(text: $searchText, prompt: "task...")
         }
     }
 
     private func addItem() {
         withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
+            let newItem = TodoItem(context: viewContext)
+            newItem.createdAt = Date()
 
             do {
                 try viewContext.save()
