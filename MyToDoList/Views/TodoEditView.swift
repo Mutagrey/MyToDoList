@@ -12,6 +12,11 @@ struct TodoEditView: View {
     @EnvironmentObject private var vm: TodoViewModel
     @ObservedObject var todo: TodoItem
     
+    enum FocusedField: Hashable {
+        case title, taskDescription
+    }
+    @FocusState var focusedField: FocusedField?
+    
     init(todo: TodoItem) {
         self.todo = todo
     }
@@ -25,6 +30,8 @@ struct TodoEditView: View {
             ) { text in
                 vm.save()
             }
+            .focused($focusedField, equals: .title)
+            
             .font(.title)
             .fontWeight(.semibold)
             
@@ -40,9 +47,14 @@ struct TodoEditView: View {
             ) { text in
                 vm.save()
             }
+            .focused($focusedField, equals: .taskDescription)
+
         }
         .padding(.top)
         .padding(.horizontal)
+        .onAppear {
+            focusedField = .title
+        }
     }
 }
 
