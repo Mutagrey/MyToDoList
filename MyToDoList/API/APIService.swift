@@ -7,11 +7,7 @@
 
 import Foundation
 
-//protocol AnyAPIService {
-//    associatedtype Item: Decodable
-//    func fetchData(_ completion: @escaping (Result<[Item], Error>) -> Void)
-//}
-
 protocol APIService {
-    func fetchData(_ completion: @escaping (Result<[TodoServiceItem], Error>) -> Void)
+    func fetchData() async throws -> [TodoServiceItem]
+    func fetchData(_ completion: @escaping (Result<[TodoServiceItem], TodoError>) -> Void)
 }

@@ -29,20 +29,16 @@ struct TodoItemView: View {
             .opacity(todo.isCompleted ? 0.5 : 1)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .contentShape(.rect)
-        .onTapGesture {
-            withAnimation(.snappy) {
-                onAction?(.completed)
-            }
-        }
         .contextMenu { menuView }
         .swipeActions(edge: .trailing) {
             Button("", systemImage: "trash", role: .destructive) {
                 onAction?(.delete)
             }
-            ShareLink(item: todo.taskDescription ?? "", subject: Text(todo.title ?? ""), message: Text(todo.taskDescription ?? "")) {
+            let image = ImageRenderer(content: descriptionView).uiImage
+            ShareLink(item: todo.taskDescription ?? "", preview:.init(todo.title ?? "Todo item", image: Image(uiImage: image ?? UIImage(systemName: "checkmark")!))) {
                 Image(systemName: "square.and.arrow.up")
             }
+            .tint(.blue)
         }
         .swipeActions(edge: .leading) {
             Button("", systemImage: todo.isCompleted ? "xmark" : "checkmark") {
@@ -56,6 +52,13 @@ struct TodoItemView: View {
         Image(systemName: todo.isCompleted ? "checkmark.circle" : "circle")
             .font(.title)
             .foregroundStyle(todo.isCompleted ? Color.accentColor : Color.secondary)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .contentShape(.rect)
+            .onTapGesture {
+                withAnimation(.snappy) {
+                    onAction?(.completed)
+                }
+            }
     }
     
     private var titleView: some View {
@@ -94,7 +97,7 @@ struct TodoItemView: View {
         }
     }
 }
-
-#Preview {
-    ContentView()
-}
+//
+//#Preview {
+//    ContentView()
+//}

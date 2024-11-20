@@ -7,18 +7,18 @@
 
 import CoreData
 
-//protocol DataManager {
-//    associatedtype Item
-//    func fetchData(_ completion: @escaping (Result<[Item], Error>) -> Void)
-//    func addNew(_ completion: @escaping (Result<Item, Error>) -> Void)
-//    func save()
-//    func delete(_ data: Item)
-//}
-
+// MARK: - GCD
 protocol DataManager {
-    func fetchData(sortDescriptor: NSSortDescriptor?, predicate: NSPredicate?, _ completion: @escaping (Result<[TodoItem], Error>) -> Void)
-    func addNew(_ completion: @escaping (TodoItem) -> Void)
-    func save(_ apiData: [TodoServiceItem])
-    func saveData()
-    func delete(_ data: TodoItem)
+    func fetchData(sortDescriptor: NSSortDescriptor?, predicate: NSPredicate?, _ completion: @escaping (Result<[TodoItem], TodoError>) -> Void)
+    func addNew(_ completion: @escaping (Result<TodoItem, TodoError>) -> Void)
+    func importData(from serviceItems: [TodoServiceItem]) throws
+    func update() throws
+    func delete(_ items: [TodoItem]) throws
 }
+
+// MARK: - Async/await
+//protocol DataManager {
+//    func fetchData() async throws -> [TodoItem]
+//    func addNew() async throws -> TodoItem
+//    func delete(_ items: [TodoItem]) async throws
+//}

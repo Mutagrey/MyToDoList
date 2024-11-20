@@ -10,22 +10,28 @@ import CoreData
 
 struct ContentView: View {
     
-    @AppStorage("isFirstLaunch") private var isFirstLaunch = true
-    @State private var path = NavigationPath()
     @EnvironmentObject private var vm: TodoViewModel
     @EnvironmentObject private var router: Router
-
+    @State private var selection: Set<TodoItem> = []
+    
     var body: some View {
         NavigationStack(path: $router.path) {
-            TodoListView()
+            listView
+                .environment(\.editMode, $vm.setting.editMode)
                 .refreshable { vm.fetchTodos(forceToUpdate: true) }
                 .searchable(text: $vm.searchText, isPresented: $vm.isPresentedSearchText)
                 .navigationTitle("Tasks")
                 .navigationDestination(for: Route.self) { $0 }
                 .toolbar {
                     ToolbarItem(placement: .bottomBar) { bottomBarView }
+                    TodoToolbar(setting: $vm.setting) { action in
+                        switch action {
+                        case .remove:
+                            vm.deleteTodo(Array(selection))
+                        }
+                    }
                 }
-                .alert(vm.errorMessage, isPresented: $vm.showError) { alertView }
+                .alert(isPresented: $vm.showError, error: vm.error) { }
         }
     }
     
@@ -49,10 +55,30 @@ struct ContentView: View {
         }
     }
     
-    private var alertView: some View {
-        VStack {
-            Button("OK") {
-                vm.showError = false
+    private var listView: some View {
+        List(selection: $selection) {
+            ForEach(vm.todos) { todo in
+                TodoItemView(todo: todo) { action in
+                    switch action {
+                    case .edit:
+                        router.push(route: .taskDetail(todo: todo))
+                    case .delete:
+                        vm.deleteTodo([todo])
+                    case .completed:
+                        todo.isCompleted.toggle()
+                        vm.update()
+                    }
+                }
+                .contentShape(.rect)
+                .onTapGesture {
+                    router.push(route: .taskDetail(todo: todo))
+                }
+            }
+        }
+        .listStyle(.plain)
+        .overlay {
+            if vm.todos.isEmpty {
+                ContentUnavailableView("No todos available", systemImage: "tray.fill", description: Text("Add new todo or refresh"))
             }
         }
     }
@@ -60,7 +86,8 @@ struct ContentView: View {
 
 
 #Preview {
-    ContentView()
-        .environmentObject(TodoViewModel(dataManager: CoreDataManager(inMemory: true), apiService: TodoService()))
+    @Previewable var manager = CoreDataManager.preview
+    return  ContentView()
+        .environmentObject(TodoViewModel(dataManager: manager, apiService: TodoService()))
         .environmentObject(Router())
 }

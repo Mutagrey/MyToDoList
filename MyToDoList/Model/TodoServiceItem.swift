@@ -7,14 +7,14 @@
 
 import Foundation
 
-// MARK: - TodoServiceItems
-struct TodoServiceItems: Codable {
+// MARK: - TodoJSON
+struct TodoJSON: Codable, Sendable {
     let todos: [TodoServiceItem]
     let total, skip, limit: Int
 }
 
 // MARK: - TodoServiceItem
-struct TodoServiceItem: Codable {
+struct TodoServiceItem: Codable, Sendable {
     let id: Int
     let todo: String
     let completed: Bool

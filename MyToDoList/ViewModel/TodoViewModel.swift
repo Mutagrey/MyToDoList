@@ -10,16 +10,18 @@ import Combine
 
 final class TodoViewModel: ObservableObject {
     
-    @AppStorage("fetchFromService") private var fetchFromService = true
+    @AppStorage("fetchFromService") private(set) var fetchFromService = true
     @Published private(set) var todos: [TodoItem] = []
     @Published private var apiTodos: [TodoServiceItem] = []
     @Published private(set) var isLoading: Bool = false
     
-    @Published private(set) var errorMessage: String = ""
+    @Published private(set) var error: TodoError?
     @Published var showError: Bool = false
 
     @Published var searchText: String = ""
     @Published var isPresentedSearchText: Bool = false
+
+    @Published var setting: TodoSetting = .init()
 
     private let dataManager: DataManager
     private let apiService: APIService
@@ -39,7 +41,7 @@ final class TodoViewModel: ObservableObject {
             .debounce(for: .milliseconds(75), scheduler: RunLoop.main)
             .sink { [weak self] text in
                 guard let self else { return }
-                if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || text.isEmpty {
                     self.fetchTodosWithDataManager()
                 }
             }
@@ -56,13 +58,23 @@ final class TodoViewModel: ObservableObject {
             .store(in: &cancellables)
         
         $apiTodos
-            .receive(on: DispatchQueue.main)
             .sink { [weak self] todos in
                 if !todos.isEmpty {
-                    self?.dataManager.save(todos)
-                    self?.fetchTodosWithDataManager()
-                    self?.fetchFromService = false
+                    do {
+                        try self?.dataManager.importData(from: todos)
+                        self?.fetchTodosWithDataManager()
+                        self?.fetchFromService = false
+                    } catch {
+                        self?.error = .unexpectedError(error: error)
+                        self?.showError = true
+                    }
                 }
+            }
+            .store(in: &cancellables)
+        
+        $setting
+            .sink { [weak self] setting in
+                self?.fetchTodosWithDataManager()
             }
             .store(in: &cancellables)
     }
@@ -70,26 +82,27 @@ final class TodoViewModel: ObservableObject {
     /// Fetch Todos from DataManager
     private func fetchTodosWithDataManager() {
         isLoading = true
-        errorMessage = ""
-        showError = false
-        
         // SortDescriptor and Predicate
-        let sort = NSSortDescriptor(keyPath: \TodoItem.createdAt, ascending: false)
-        let predicate: NSPredicate
-        if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            predicate = NSPredicate(value: true)
+        let sort: NSSortDescriptor
+        if setting.sortBy == .date {
+            sort = NSSortDescriptor(keyPath: \TodoItem.createdAt, ascending: setting.order == .ascending)
         } else {
+            sort = NSSortDescriptor(keyPath: \TodoItem.title, ascending: setting.order == .ascending)
+        }
+        var predicate: NSPredicate?
+        if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+//            predicate = NSPredicate(value: true)
+//        } else {
             predicate = NSPredicate(format: "title contains [cd] %@ OR taskDescription contains [cd] %@", argumentArray: [searchText, searchText])
         }
-        
         // fetch data
         dataManager.fetchData(sortDescriptor: sort, predicate: predicate) { [weak self] result in
             switch result {
             case .success(let data):
+                self?.todos = []
                 self?.todos = data
             case .failure(let failure):
-                self?.todos = []
-                self?.errorMessage = "Error to fetch data from DataManager: \n\(failure.localizedDescription)"
+                self?.error = failure
                 self?.showError = true
             }
             self?.isLoading = false
@@ -99,14 +112,12 @@ final class TodoViewModel: ObservableObject {
     /// Fetch Todos from API Service
     private func fetchTodosWithAPICall() {
         isLoading = true
-        errorMessage = ""
-        showError = false
         apiService.fetchData { [weak self] result in
             switch result {
             case .success(let data):
                 self?.apiTodos = data
             case .failure(let failure):
-                self?.errorMessage = "Error to fetch data from API Service: \n\(failure.localizedDescription)"
+                self?.error = .unexpectedError(error: failure)
                 self?.showError = true
             }
             self?.isLoading = false
@@ -129,24 +140,36 @@ extension TodoViewModel {
     
     /// Add new Todo
     func addNewTodo(_ completion: @escaping (TodoItem) -> Void) {
-        dataManager.addNew { [weak self] data in
-//            self.todos.insert(data, at: 0)
-            self?.fetchTodosWithDataManager()
-            completion(data)
+        dataManager.addNew { [weak self] result in
+            switch result {
+            case .success(let data):
+                self?.fetchTodosWithDataManager()
+                completion(data)
+            case .failure(let failure):
+                self?.error = failure
+                self?.showError = true
+            }
         }
     }
     
     /// Delete Todo
-    func deleteTodo(_ item: TodoItem) {
-        if let index = self.todos.firstIndex(where: { $0.objectID == item.objectID }) {
-            self.todos.remove(at: index)
+    func deleteTodo(_ items: [TodoItem]) {
+        do {
+            try dataManager.delete(items)
+            fetchTodosWithDataManager()
+        } catch {
+            self.error = error as? TodoError
+            self.showError = true
         }
-        dataManager.delete(item)
-//        fetchTodosWithDataManager()
     }
     
     ///  Update
-    func save() {
-        dataManager.saveData()
+    func update() {
+        do {
+            try dataManager.update()
+        } catch {
+            self.error = error as? TodoError
+            self.showError = true
+        }
     }
 }

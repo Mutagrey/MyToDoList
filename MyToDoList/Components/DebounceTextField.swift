@@ -53,7 +53,7 @@ struct DebounceTextField: View {
                 TextEditor(text: $text)
             }
         }
-        .onChange(of: text) { oldValue, newValue in
+        .onChange(of: text, initial: false) { oldValue, newValue in
             guard oldValue != newValue else { return }
             vm.text = newValue
         }

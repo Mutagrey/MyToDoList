@@ -11,20 +11,25 @@ struct TodoListView: View {
     
     @EnvironmentObject private var router: Router
     @EnvironmentObject private var vm: TodoViewModel
+    @Binding var selection: Set<TodoItem>
     
     var body: some View {
-        List {
+        List(selection: $selection) {
             ForEach(vm.todos) { todo in
                 TodoItemView(todo: todo) { action in
                     switch action {
                     case .edit:
                         router.push(route: .taskDetail(todo: todo))
                     case .delete:
-                        vm.deleteTodo(todo)
+                        vm.deleteTodo([todo])
                     case .completed:
                         todo.isCompleted.toggle()
-                        vm.save()
+                        vm.update()
                     }
+                }
+                .contentShape(.rect)
+                .onTapGesture {
+                    router.push(route: .taskDetail(todo: todo))
                 }
             }
         }
@@ -39,8 +44,10 @@ struct TodoListView: View {
 
 #Preview {
     @Previewable @State var router = Router()
+    @Previewable @State var selection = Set<TodoItem>()
+
     return NavigationStack(path: $router.path) {
-        TodoListView()
+        TodoListView(selection: $selection)
             .navigationTitle("Todos")
             .environmentObject(TodoViewModel(dataManager: CoreDataManager.preview, apiService: TodoService()))
             .environmentObject(router)

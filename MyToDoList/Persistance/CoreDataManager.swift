@@ -11,47 +11,65 @@ final class CoreDataManager {
     
     static let shared = CoreDataManager()
     
-    private let container: NSPersistentContainer
+    private let inMemory: Bool
 
+    private init(inMemory: Bool = false) {
+        self.inMemory = inMemory
+    }
+    
     @MainActor
     static let preview: CoreDataManager = {
-        let result = CoreDataManager(inMemory: true)
-        let viewContext = result.container.viewContext
-        for i in 0..<10 {
-            let newItem = TodoItem(context: viewContext)
-            newItem.title = "Some title \(i)"
-            newItem.createdAt = Date()
-            newItem.isCompleted = Bool.random()
-            newItem.taskDescription = "Some description \(i)"
-        }
-        do {
-            try viewContext.save()
-        } catch {
-            let nsError = error as NSError
-            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-        }
-        return result
+        let manager = CoreDataManager(inMemory: true)
+        TodoItem.makePreviews(count: 10, context: manager.container.viewContext)
+        return manager
     }()
+    
+    /// A persistent container to set up the Core Data stack.
+    lazy var container: NSPersistentContainer = {
 
-    init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "MyToDoList")
-        if inMemory {
-            container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+        let container = NSPersistentContainer(name: "MyToDoList")
+
+        guard let description = container.persistentStoreDescriptions.first else {
+            fatalError("Failed to retrieve a persistent store description.")
         }
-        container.loadPersistentStores{ (storeDescription, error) in
+
+        if inMemory {
+            description.url = URL(fileURLWithPath: "/dev/null")
+        }
+
+        container.loadPersistentStores { storeDescription, error in
             if let error = error as NSError? {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         }
+        // viewContext properties for refreshing UI.
         container.viewContext.automaticallyMergesChangesFromParent = true
-//        container.viewContext.mergePolicy = NSMergePolicy.mergeByPropertyStoreTrump
+        container.viewContext.name = "viewContext"
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        container.viewContext.undoManager = nil
+        container.viewContext.shouldDeleteInaccessibleFaults = true
+        return container
+    }()
+    
+    /// Creates and configures a private queue context.
+    private func newTaskContext() -> NSManagedObjectContext {
+        // Create a private queue context.
+        /// - Tag: newBackgroundContext
+        let taskContext = container.newBackgroundContext()
+        taskContext.automaticallyMergesChangesFromParent = true
+        taskContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        // Set unused undoManager to nil for macOS (it is nil by default on iOS)
+        // to reduce resource requirements.
+        taskContext.undoManager = nil
+        return taskContext
     }
 }
 
+// MARK: - DataManager implementation
 extension CoreDataManager: DataManager {
 
-    func fetchData(sortDescriptor: NSSortDescriptor?, predicate: NSPredicate?, _ completion: @escaping (Result<[TodoItem], any Error>) -> Void) {
-        let context = self.container.viewContext
+    func fetchData(sortDescriptor: NSSortDescriptor?, predicate: NSPredicate?, _ completion: @escaping (Result<[TodoItem], TodoError>) -> Void) {
+        let context = container.viewContext
         // Perform async code on the Main Thread
         context.perform {
             let request = TodoItem.fetchRequest()
@@ -60,64 +78,73 @@ extension CoreDataManager: DataManager {
             do {
                 let data = try context.fetch(request)
                 completion(.success(data))
-            } catch let error {
-                completion(.failure(error))
+            } catch {
+                completion(.failure(.errorMessage(msg: "Error to fetch Core Data items")))
             }
         }
     }
     
-    func addNew(_ completion: @escaping (TodoItem) -> Void) {
-        self.container.performBackgroundTask { context in
-            let newItem = TodoItem(context: context)
-            self.saveData(context: context)
-            DispatchQueue.main.async {
-                if let object = context.object(with: newItem.objectID) as? TodoItem {
-                    completion(object)
-                }
-            }
-        }
-    }
-
-    private func saveData(context: NSManagedObjectContext) {
-        do {
-            if context.hasChanges {
-                try context.save()
-            }
-        } catch {
-            print("Failed to save item: \(error)")
-        }
-    }
-    
-    func saveData() {
-        let context = self.container.viewContext
-        context.perform {
-            self.saveData(context: context)
-        }
-    }
-    
-    func save(_ apiData: [TodoServiceItem]) {
-        self.container.performBackgroundTask { context in
-            for todo in apiData {
-                _ = TodoItem(serviceItem: todo, context: context)
-            }
-            self.saveData(context: context)
-        }
-    }
-    
-    func delete(_ data: TodoItem) {
-        let context = self.container.viewContext
-        // Perform async code on the Main Thread
+    /// Add new TodoItem
+    func addNew(_ completion: @escaping (Result<TodoItem, TodoError>) -> Void) {
+        let context = container.viewContext
         context.performAndWait {
-            // Safely fetch the object to delete using its object ID
-            let deleteItem = context.object(with: data.objectID)
-            context.delete(deleteItem)
-            self.saveData(context: context)
+            let newItem = TodoItem(context: context)
+            newItem.createdAt = .now
+            do {
+                try context.save()
+                completion(.success(newItem))
+            } catch {
+                completion(.failure(.creationError))
+            }
         }
     }
-}
-
-extension String: LocalizedError {
-    public var errorDescription: String? {
-        return self
+    
+    func update() throws {
+        let context = container.viewContext
+        try context.performAndWait {
+            do {
+                if context.hasChanges {
+                    try context.save()
+                }
+            } catch {
+                throw TodoError.errorMessage(msg: "Error to save Core Data: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    /// Import service items to Core Data
+    /// - Tag: Perform on background Thread
+    func importData(from serviceItems: [TodoServiceItem]) throws {
+        let context = newTaskContext()
+        try context.performAndWait {
+            for item in serviceItems {
+                _ = TodoItem(serviceItem: item, context: context)
+            }
+            do {
+                try context.save()
+            } catch {
+                throw TodoError.batchInsertError
+            }
+        }
+    }
+    
+    /// Delete Items
+    func delete(_ items: [TodoItem]) throws {
+        let context = newTaskContext()
+        let deleteIDs = items.map(\.objectID)
+        // Perform async code on the Main Thread
+        try context.performAndWait {
+            for id in deleteIDs {
+                // Safely fetch the object to delete using its object ID. Because objectID is Sendable.
+                let deleteItem = context.object(with: id)
+                context.delete(deleteItem)
+            }
+            // Save changes
+            do {
+                try context.save()
+            } catch {
+                throw TodoError.batchDeleteError
+            }
+        }
     }
 }

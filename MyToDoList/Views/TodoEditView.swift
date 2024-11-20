@@ -28,7 +28,7 @@ struct TodoEditView: View {
                 text: Binding(get: { todo.title ?? "" }, set: { todo.title = $0 }),
                 type: .textfield
             ) { text in
-                vm.save()
+                vm.update()
             }
             .focused($focusedField, equals: .title)
             
@@ -45,7 +45,7 @@ struct TodoEditView: View {
                 text: Binding(get: { todo.taskDescription ?? "" }, set: { todo.taskDescription = $0 }),
                 type: .textEditor
             ) { text in
-                vm.save()
+                vm.update()
             }
             .focused($focusedField, equals: .taskDescription)
 
@@ -60,5 +60,5 @@ struct TodoEditView: View {
 
 #Preview {
     ContentView()
-        .environmentObject(TodoViewModel(dataManager: CoreDataManager(inMemory: true), apiService: TodoService()))
+        .environmentObject(TodoViewModel(dataManager: CoreDataManager.preview, apiService: TodoService()))
 }
