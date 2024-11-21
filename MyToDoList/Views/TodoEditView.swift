@@ -28,7 +28,7 @@ struct TodoEditView: View {
                 text: Binding(get: { todo.title ?? "" }, set: { todo.title = $0 }),
                 type: .textfield
             ) { text in
-                vm.update()
+                vm.save()
             }
             .focused($focusedField, equals: .title)
             
@@ -45,7 +45,7 @@ struct TodoEditView: View {
                 text: Binding(get: { todo.taskDescription ?? "" }, set: { todo.taskDescription = $0 }),
                 type: .textEditor
             ) { text in
-                vm.update()
+                vm.save()
             }
             .focused($focusedField, equals: .taskDescription)
 

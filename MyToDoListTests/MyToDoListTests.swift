@@ -44,7 +44,7 @@ final class MyToDoListTests: XCTestCase {
         
         viewModel.addNewTodo { todo in
 //            XCTAssertEqual(viewModel.todos.count, 31)
-//            viewModel.deleteTodo([todo])
+//            viewModel.deleteTodos([todo])
 //            XCTAssertEqual(viewModel.todos.count, 30)
         }
 //        XCTAssertNoThrow

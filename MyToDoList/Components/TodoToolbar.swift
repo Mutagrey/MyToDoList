@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-
-
 enum SortByMenu: String, CaseIterable {
     case date = "Date"
     case title = "Title"
@@ -33,24 +31,20 @@ enum Order: String, CaseIterable {
     }
 }
 
-struct TodoSetting {
-    var sortBy: SortByMenu = .date
-    var order: Order = .descending
-    var editMode: EditMode = .inactive
-}
 
+// MARK: - SwiftUI
 struct TodoToolbar: ToolbarContent {
     
     enum ToolbarAction {
         case remove
     }
     
+    @Environment(\.editMode) private var editMode
     @Binding var setting: TodoSetting
     var action: ((ToolbarAction)->Void)?
     
-    private var isEditing: Bool {
-        setting.editMode.isEditing
-    }
+    private var isEditing: Bool { editMode?.wrappedValue.isEditing ?? false }
+    
     var body: some ToolbarContent {
         ToolbarItem(placement: .navigationBarTrailing) {
             Group {
@@ -61,7 +55,9 @@ struct TodoToolbar: ToolbarContent {
                     Menu {
                         Button("Select tasks", systemImage: "checkmark.circle") {
                             withAnimation {
-                                setting.editMode = .active
+                                if !isEditing {
+                                    editMode?.wrappedValue = .active
+                                }
                             }
                         }
                         .contentTransition(.symbolEffect(.replace))
@@ -90,20 +86,31 @@ struct TodoToolbar: ToolbarContent {
                 }
             }
             .animation(.smooth, value: isEditing)
-            .environment(\.editMode, $setting.editMode)
         }
     }
     
     
     private func sortButton(_ sortBy: SortByMenu) -> some View {
-        Button(sortBy.rawValue, systemImage: self.setting.sortBy == sortBy ? "checkmark" : "") {
+        Button {
             self.setting.sortBy = sortBy
+        } label: {
+            if self.setting.sortBy == sortBy {
+                Label(sortBy.rawValue, systemImage: "checkmark")
+            } else {
+                Text(sortBy.rawValue)
+            }
         }
     }
     
     private func ordeButton(_ order: Order) -> some View {
-        Button(order.rawValue, systemImage: self.setting.order == order ? "checkmark" : "") {
+        Button {
             self.setting.order = order
+        } label: {
+            if self.setting.order == order {
+                Label(order.rawValue, systemImage: "checkmark")
+            } else {
+                Text(order.rawValue)
+            }
         }
     }
 }

@@ -153,7 +153,7 @@ extension TodoViewModel {
     }
     
     /// Delete Todo
-    func deleteTodo(_ items: [TodoItem]) {
+    func deleteTodos(_ items: [TodoItem]) {
         do {
             try dataManager.delete(items)
             fetchTodosWithDataManager()
@@ -164,7 +164,7 @@ extension TodoViewModel {
     }
     
     ///  Update
-    func update() {
+    func save() {
         do {
             try dataManager.update()
         } catch {
