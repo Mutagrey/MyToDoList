@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TodoItemView: View {
     
+    @Environment(\.editMode) private var editMode
     @ObservedObject var todo: TodoItem
     var onAction: ((TodoAction) -> Void)?
     
@@ -18,7 +19,11 @@ struct TodoItemView: View {
     
     var body: some View {
         HStack(alignment: .top) {
-            statusView
+            if editMode?.wrappedValue.isEditing == false {
+                statusView
+                    .transition(.asymmetric(insertion: .scale, removal: .scale.combined(with: .opacity)))
+                    .animation(.smooth, value: editMode?.wrappedValue)
+            }
             VStack(alignment: .leading, spacing: 6) {
                 titleView
                 if let description = todo.taskDescription, !description.isEmpty {
@@ -34,10 +39,7 @@ struct TodoItemView: View {
             Button("", systemImage: "trash", role: .destructive) {
                 onAction?(.delete)
             }
-            let image = ImageRenderer(content: descriptionView).uiImage
-            ShareLink(item: todo.taskDescription ?? "", preview:.init(todo.title ?? "Todo item", image: Image(uiImage: image ?? UIImage(systemName: "checkmark")!))) {
-                Image(systemName: "square.and.arrow.up")
-            }
+            shareLink
             .tint(.blue)
         }
         .swipeActions(edge: .leading) {
@@ -45,6 +47,18 @@ struct TodoItemView: View {
                 onAction?(.completed)
             }
             .tint(todo.isCompleted ? .gray : .orange)
+        }
+    }
+    
+    private var shareLink: some View {
+        ShareLink(
+            item: (todo.title ?? "") + "\n" + (todo.taskDescription ?? ""),
+            preview:.init(
+                todo.title ?? "Todo item",
+                image: Image(systemName: todo.isCompleted ? "checkmark.circle" : "circle")
+            )
+        ) {
+            Image(systemName: "square.and.arrow.up")
         }
     }
     
@@ -87,9 +101,7 @@ struct TodoItemView: View {
             Button("Edit", systemImage: "square.and.pencil") {
                 onAction?(.edit)
             }
-            ShareLink(item: todo.taskDescription ?? "", subject: Text(todo.title ?? "")) {
-                Label("Share", systemImage: "square.and.arrow.up")
-            }
+            shareLink
             Divider()
             Button("Delete", systemImage: "trash", role: .destructive) {
                 onAction?(.delete)

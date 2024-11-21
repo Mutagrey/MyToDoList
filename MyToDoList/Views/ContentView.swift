@@ -97,11 +97,12 @@ struct ContentView: View {
                         }
                     }
                 }
-                .opacity(isEditing ? 0.7 : 1)
                 .contentShape(.rect)
                 .onTapGesture {
                     if !isEditing {
                         router.push(route: .taskDetail(todo: todo))
+                    } else {
+                        selection.insert(todo.id)
                     }
                 }
             }

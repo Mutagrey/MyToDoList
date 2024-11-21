@@ -72,11 +72,11 @@ final class TodoViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
-        $setting
-            .sink { [weak self] setting in
-                self?.fetchTodosWithDataManager()
-            }
-            .store(in: &cancellables)
+//        $setting
+//            .sink { [weak self] setting in
+//                self?.fetchTodosWithDataManager()
+//            }
+//            .store(in: &cancellables)
     }
     
     /// Fetch Todos from DataManager
