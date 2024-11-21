@@ -40,12 +40,14 @@
 			membershipExceptions = (
 				API/APIService.swift,
 				API/TodoService.swift,
+				Components/CustomEditButton.swift,
 				Components/DebounceTextField.swift,
 				Components/KeyboarToolbar.swift,
 				Components/SearchableModifier.swift,
 				Components/TodoToolbar.swift,
 				Model/TodoError.swift,
 				Model/TodoItem.swift,
+				Model/TodoMenu.swift,
 				Model/TodoServiceItem.swift,
 				Model/TodoSetting.swift,
 				Persistance/CoreDataManager.swift,
@@ -60,12 +62,14 @@
 			membershipExceptions = (
 				API/APIService.swift,
 				API/TodoService.swift,
+				Components/CustomEditButton.swift,
 				Components/DebounceTextField.swift,
 				Components/KeyboarToolbar.swift,
 				Components/SearchableModifier.swift,
 				Components/TodoToolbar.swift,
 				Model/TodoError.swift,
 				Model/TodoItem.swift,
+				Model/TodoMenu.swift,
 				Model/TodoServiceItem.swift,
 				Model/TodoSetting.swift,
 				Persistance/CoreDataManager.swift,
@@ -470,6 +474,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -501,6 +506,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

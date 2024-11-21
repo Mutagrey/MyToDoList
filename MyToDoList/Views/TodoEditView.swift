@@ -53,7 +53,10 @@ struct TodoEditView: View {
         .padding(.top)
         .padding(.horizontal)
         .onAppear {
-            focusedField = .title
+            focusedField = (todo.title ?? "").isEmpty ? .taskDescription : .title
+        }
+        .toolbar {
+            KeyboardToolbar { vm.save() }
         }
     }
 }

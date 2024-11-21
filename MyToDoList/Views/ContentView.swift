@@ -12,13 +12,15 @@ struct ContentView: View {
     
     @EnvironmentObject private var vm: TodoViewModel
     @EnvironmentObject private var router: Router
-    @Environment(\.editMode) private var editMode
-    private var isEditing: Bool { (editMode?.wrappedValue != .inactive) }
+//    @Environment(\.editMode) private var editMode
+    @State private var editMode = EditMode.inactive
+    private var isEditing: Bool { editMode.isEditing }
     @State private var selection = Set<TodoItem.ID>()
 
     var body: some View {
         NavigationStack(path: $router.path) {
             listView
+                .environment(\.editMode, $editMode)
                 .refreshable { vm.fetchTodos(forceToUpdate: true) }
                 .searchableWithDebounce(text: $vm.searchText, isPresentedSearch: $vm.isPresentedSearchText)
                 .navigationTitle("Tasks")
@@ -32,23 +34,24 @@ struct ContentView: View {
         let selectedTodos = vm.todos.filter({ selection.isEmpty || selection.contains($0.id) })
         vm.deleteTodos(selectedTodos)
         withAnimation {
-            editMode?.wrappedValue = .inactive
+            editMode = .inactive
         }
     }
     
     @ToolbarContentBuilder
     func toolbarContent() -> some ToolbarContent {
-        bottomToolbar
+        bottomToolbar()
         KeyboardToolbar { vm.save() }
-        TodoToolbar(setting: $vm.setting) { action in
+        TodoToolbar(setting: $vm.setting, editMode: $editMode) { action in
             switch action {
+            case .settingsChanged: vm.fetchTodos()
             case .remove: deleteTodos()
             }
         }
     }
     
     @ToolbarContentBuilder
-    private var bottomToolbar: some ToolbarContent {
+    private func bottomToolbar() -> some ToolbarContent {
         ToolbarItem(placement: .bottomBar) {
             HStack {
                 if isEditing {
@@ -56,6 +59,7 @@ struct ContentView: View {
                         deleteTodos()
                     }
                     .tint(.red)
+                    .disabled(selection.isEmpty)
                 }
                 Spacer()
                 ProgressView()
@@ -72,6 +76,7 @@ struct ContentView: View {
                 } label: {
                     Image(systemName: "square.and.pencil")
                 }
+                .disabled(isEditing)
             }
         }
     }
@@ -92,7 +97,7 @@ struct ContentView: View {
                         }
                     }
                 }
-                .opacity(isEditing ? 1 : 0.7)
+                .opacity(isEditing ? 0.7 : 1)
                 .contentShape(.rect)
                 .onTapGesture {
                     if !isEditing {
@@ -105,7 +110,7 @@ struct ContentView: View {
         .overlay {
             if vm.todos.isEmpty && !vm.isPresentedSearchText {
                 ContentUnavailableView("No todos available", systemImage: "tray.fill", description: Text("Add new todo or refresh"))
-            } else if vm.isPresentedSearchText && !vm.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            } else if vm.isPresentedSearchText && vm.todos.isEmpty {
                 ContentUnavailableView.search
             }
         }

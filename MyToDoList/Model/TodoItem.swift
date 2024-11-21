@@ -40,5 +40,36 @@ extension TodoItem {
         }
         return todos
     }
+    
+    /// Predicate for filtering fetch request by given text
+    static func predicate(text: String?, filter: TodoFiltering = .all) -> NSPredicate? {
+        switch filter {
+        case .all:
+            if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return NSPredicate(format: "title contains [cd] %@ OR taskDescription contains [cd] %@", argumentArray: [text, text])
+            }
+            return nil
+        case .done:
+            if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return NSPredicate(format: "(title contains [cd] %@ OR taskDescription contains [cd] %@) AND isCompleted == %@", argumentArray: [text, text, NSNumber(value: true)])
+            }
+            return NSPredicate(format: "isCompleted == %@", NSNumber(value: true))
+        case .undone:
+            if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return NSPredicate(format: "(title contains [cd] %@ OR taskDescription contains [cd] %@) AND isCompleted == %@", argumentArray: [text, text, NSNumber(value: false)])
+            }
+            return NSPredicate(format: "isCompleted == %@", NSNumber(value: false))
+        }
+    }
+    
+    /// Sort descriptor by given settings
+    static func sortDescriptor(by sorting: TodoSorting, order: TodoSortOrder) -> NSSortDescriptor {
+        switch sorting {
+        case .date:
+            NSSortDescriptor(keyPath: \TodoItem.createdAt, ascending: order == .ascending)
+        case .title:
+            NSSortDescriptor(keyPath: \TodoItem.title, ascending: order == .ascending)
+        }
+    }
 }
 

@@ -83,18 +83,8 @@ final class TodoViewModel: ObservableObject {
     private func fetchTodosWithDataManager() {
         isLoading = true
         // SortDescriptor and Predicate
-        let sort: NSSortDescriptor
-        if setting.sortBy == .date {
-            sort = NSSortDescriptor(keyPath: \TodoItem.createdAt, ascending: setting.order == .ascending)
-        } else {
-            sort = NSSortDescriptor(keyPath: \TodoItem.title, ascending: setting.order == .ascending)
-        }
-        var predicate: NSPredicate?
-        if !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-//            predicate = NSPredicate(value: true)
-//        } else {
-            predicate = NSPredicate(format: "title contains [cd] %@ OR taskDescription contains [cd] %@", argumentArray: [searchText, searchText])
-        }
+        let sort = TodoItem.sortDescriptor(by: setting.sortBy, order: setting.order)
+        let predicate = TodoItem.predicate(text: searchText, filter: setting.filter)
         // fetch data
         dataManager.fetchData(sortDescriptor: sort, predicate: predicate) { [weak self] result in
             switch result {
