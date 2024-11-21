@@ -58,6 +58,7 @@ final class TodoViewModel: ObservableObject {
             .store(in: &cancellables)
         
         $apiTodos
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] todos in
                 if !todos.isEmpty {
                     do {
@@ -65,18 +66,12 @@ final class TodoViewModel: ObservableObject {
                         self?.fetchTodosWithDataManager()
                         self?.fetchFromService = false
                     } catch {
-                        self?.error = .unexpectedError(error: error)
+                        self?.error = .error(error: error)
                         self?.showError = true
                     }
                 }
             }
             .store(in: &cancellables)
-        
-//        $setting
-//            .sink { [weak self] setting in
-//                self?.fetchTodosWithDataManager()
-//            }
-//            .store(in: &cancellables)
     }
     
     /// Fetch Todos from DataManager
@@ -92,7 +87,7 @@ final class TodoViewModel: ObservableObject {
                 self?.todos = []
                 self?.todos = data
             case .failure(let failure):
-                self?.error = failure
+                self?.error = .error(error: failure)
                 self?.showError = true
             }
             self?.isLoading = false
@@ -103,17 +98,18 @@ final class TodoViewModel: ObservableObject {
     private func fetchTodosWithAPICall() {
         isLoading = true
         apiService.fetchData { [weak self] result in
-            switch result {
-            case .success(let data):
-                self?.apiTodos = data
-            case .failure(let failure):
-                self?.error = .unexpectedError(error: failure)
-                self?.showError = true
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let data):
+                    self?.apiTodos = data
+                case .failure(let failure):
+                    self?.error = .error(error: failure)
+                    self?.showError = true
+                }
+                self?.isLoading = false
             }
-            self?.isLoading = false
         }
     }
- 
 }
 
 // MARK: - Intent`s
@@ -136,7 +132,7 @@ extension TodoViewModel {
                 self?.fetchTodosWithDataManager()
                 completion(data)
             case .failure(let failure):
-                self?.error = failure
+                self?.error = .error(error: failure)
                 self?.showError = true
             }
         }
@@ -148,7 +144,7 @@ extension TodoViewModel {
             try dataManager.delete(items)
             fetchTodosWithDataManager()
         } catch {
-            self.error = error as? TodoError
+            self.error = .error(error: error)
             self.showError = true
         }
     }
@@ -158,7 +154,7 @@ extension TodoViewModel {
         do {
             try dataManager.update()
         } catch {
-            self.error = error as? TodoError
+            self.error = .error(error: error)
             self.showError = true
         }
     }

@@ -9,8 +9,8 @@ import CoreData
 
 // MARK: - GCD
 protocol DataManager {
-    func fetchData(sortDescriptor: NSSortDescriptor?, predicate: NSPredicate?, _ completion: @escaping (Result<[TodoItem], TodoError>) -> Void)
-    func addNew(_ completion: @escaping (Result<TodoItem, TodoError>) -> Void)
+    func fetchData(sortDescriptor: NSSortDescriptor?, predicate: NSPredicate?, _ completion: @escaping (Result<[TodoItem], DataManagerError>) -> Void)
+    func addNew(_ completion: @escaping (Result<TodoItem, DataManagerError>) -> Void)
     func importData(from serviceItems: [TodoServiceItem]) throws
     func update() throws
     func delete(_ items: [TodoItem]) throws

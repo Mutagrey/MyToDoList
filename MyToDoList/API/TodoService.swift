@@ -13,43 +13,38 @@ final class TodoService: APIService {
     private let baseURL = "https://dummyjson.com/todos"
     
     func fetchData() async throws -> [TodoServiceItem] {
-        guard let url = URL(string: baseURL) else { throw URLError(.badURL) }
-        let (data, _) = try await URLSession.shared.data(from: url)
-        return try JSONDecoder().decode(TodoJSON.self, from: data).todos
+        guard let url = URL(string: baseURL) else { throw APIError.invalidURL }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            return try JSONDecoder().decode(TodoJSON.self, from: data).todos
+        } catch let error as DecodingError {
+            throw APIError.decodeError(error: error)
+        } catch {
+            throw APIError.requestError(error: error)
+        }
     }
     
-    func fetchData(_ completion: @escaping (Result<[TodoServiceItem], TodoError>) -> Void) {
+    func fetchData(_ completion: @escaping (Result<[TodoServiceItem], APIError>) -> Void) {
         guard let url = URL(string: baseURL) else {
-            completion(.failure(.unexpectedError(error: URLError(.badURL))))
+            completion(.failure(.invalidURL))
             return
         }
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        URLSession.shared.dataTask(with: url) { data, response, error in
             if let error = error {
-                DispatchQueue.main.async {
-                    completion(.failure(.errorMessage(msg: error.localizedDescription)))
-                }
-                return
+                completion(.failure(.requestError(error: error)))
             }
             
             guard let data = data else {
-                DispatchQueue.main.async {
-                    completion(.failure(.missingData))
-                }
+                completion(.failure(.missingData))
                 return
             }
             
             do {
                 let todos = try JSONDecoder().decode(TodoJSON.self, from: data)
-                DispatchQueue.main.async {
-                    completion(.success(todos.todos))
-                }
+                completion(.success(todos.todos))
             } catch {
-                DispatchQueue.main.async {
-                    completion(.failure(.wrongDataFormat(error: error)))
-                }
+                completion(.failure(.decodeError(error: error)))
             }
-        }
-        
-        task.resume()
+        }.resume()
     }
 }

@@ -7,39 +7,69 @@
 
 import Foundation
 
+// MARK: - TodoError
 enum TodoError: Error {
-    case wrongDataFormat(error: Error)
-    case missingData
-    case creationError
-    case batchInsertError
-    case batchDeleteError
-    case unexpectedError(error: Error)
-    case errorMessage(msg: String)
+    case error(error: Error)
 }
 
 extension TodoError: LocalizedError {
     var errorDescription: String? {
         switch self {
-        case .wrongDataFormat(let error):
-            return NSLocalizedString("Could not digest the fetched data. \(error.localizedDescription)", comment: "")
-        case .missingData:
-            return NSLocalizedString("Found and will discard a todo item, missing a valid data.", comment: "")
-        case .creationError:
-            return NSLocalizedString("Failed to create a new Todo object.", comment: "")
-        case .batchInsertError:
-            return NSLocalizedString("Failed to execute a batch insert request.", comment: "")
-        case .batchDeleteError:
-            return NSLocalizedString("Failed to execute a batch delete request.", comment: "")
-        case .unexpectedError(let error):
-            return NSLocalizedString("Received unexpected error. \(error.localizedDescription)", comment: "")
-        case .errorMessage(let msg):
-            return NSLocalizedString(msg, comment: "")
+        case .error(let error):
+            if let localError = error as? LocalizedError {
+                return localError.errorDescription
+            } else {
+                return NSLocalizedString(error.localizedDescription, comment: "")
+            }
         }
     }
 }
 
-extension TodoError: Identifiable {
-    var id: String? {
-        errorDescription
+// MARK: - APIError
+enum APIError: Error {
+    case invalidURL
+    case requestError(error: Error)
+    case missingData
+    case decodeError(error: Error)
+}
+
+extension APIError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return NSLocalizedString("Invalid URL link.", comment: "")
+        case .requestError(let error):
+            return NSLocalizedString("Request failed. \(error.localizedDescription)", comment: "")
+        case .missingData:
+            return NSLocalizedString("Missing JSON data.", comment: "")
+        case .decodeError(let error):
+            return NSLocalizedString("Error to decode JSON data. \(error.localizedDescription)", comment: "")
+        }
+    }
+}
+
+// MARK: - DataManagerError
+enum DataManagerError: Error {
+    case creationError
+    case insertError
+    case deleteError
+    case fetchError(error: Error)
+    case unexpectedError(error: Error)
+}
+
+extension DataManagerError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .creationError:
+            return NSLocalizedString("Failed to create a new item.", comment: "")
+        case .insertError:
+            return NSLocalizedString("Failed to execute an insert request.", comment: "")
+        case .deleteError:
+            return NSLocalizedString("Failed to execute a delete request.", comment: "")
+        case .fetchError(let error):
+            return NSLocalizedString("Failed to fetch data. \(error.localizedDescription)", comment: "")
+        case .unexpectedError(let error):
+            return NSLocalizedString("Unexpected error. \(error.localizedDescription)", comment: "")
+        }
     }
 }

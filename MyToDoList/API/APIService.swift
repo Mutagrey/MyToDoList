@@ -9,5 +9,5 @@ import Foundation
 
 protocol APIService {
     func fetchData() async throws -> [TodoServiceItem]
-    func fetchData(_ completion: @escaping (Result<[TodoServiceItem], TodoError>) -> Void)
+    func fetchData(_ completion: @escaping (Result<[TodoServiceItem], APIError>) -> Void)
 }

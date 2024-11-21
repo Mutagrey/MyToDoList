@@ -12,7 +12,6 @@ struct ContentView: View {
     
     @EnvironmentObject private var vm: TodoViewModel
     @EnvironmentObject private var router: Router
-//    @Environment(\.editMode) private var editMode
     @State private var editMode = EditMode.inactive
     private var isEditing: Bool { editMode.isEditing }
     @State private var selection = Set<TodoItem.ID>()

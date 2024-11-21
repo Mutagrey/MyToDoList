@@ -11,12 +11,12 @@ import XCTest
 final class MyToDoListTests: XCTestCase {
 
     var viewModel: TodoViewModel!
-    var dataManager: DataManager!
+    var dataManager: CoreDataManager!
     var apiService: APIService!
     
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
-        dataManager = CoreDataManager.preview
+        dataManager = CoreDataManager.mock
         apiService = TodoService()
         viewModel = TodoViewModel(dataManager: dataManager, apiService: apiService)
     }
@@ -28,7 +28,38 @@ final class MyToDoListTests: XCTestCase {
         viewModel = nil
         try super.tearDownWithError()
     }
+    
+    func testFetchTodos() throws {
+        
+    }
+    
+    func testAddNewTodo() throws {
+        viewModel.addNewTodo { todo in
+        }
+        XCTAssertEqual(self.viewModel.todos.count, 1)
 
+        viewModel.addNewTodo { todo in
+        }
+        XCTAssertEqual(self.viewModel.todos.count, 2)
+
+    }
+    
+    func testDeleteTodo() throws {
+        viewModel.addNewTodo { todo in
+            XCTAssertEqual(self.viewModel.todos.count, 1)
+        }
+        viewModel.addNewTodo { todo in
+            XCTAssertEqual(self.viewModel.todos.count, 2)
+        }
+        XCTAssertEqual(self.viewModel.todos.count, 2)
+        viewModel.deleteTodos(self.viewModel.todos)
+        XCTAssertEqual(self.viewModel.todos.count, 0)
+    }
+    
+    func testSaveTodos() throws {
+        
+    }
+    
     func testExample() throws {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
@@ -39,7 +70,6 @@ final class MyToDoListTests: XCTestCase {
 //        XCTAssertEqual(viewModel.fetchFromService, true)
         
         viewModel.fetchTodos()
-
         XCTAssertEqual(viewModel.showError, false)
         
         viewModel.addNewTodo { todo in

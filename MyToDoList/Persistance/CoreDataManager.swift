@@ -17,6 +17,13 @@ final class CoreDataManager {
         self.inMemory = inMemory
     }
     
+    /// Create empty CoreDataManager in memory
+    /// - For testing purposes
+    static let mock: CoreDataManager = {
+        let manager = CoreDataManager(inMemory: true)
+        return manager
+    }()
+    
     @MainActor
     static let preview: CoreDataManager = {
         let manager = CoreDataManager(inMemory: true)
@@ -68,7 +75,7 @@ final class CoreDataManager {
 // MARK: - DataManager implementation
 extension CoreDataManager: DataManager {
 
-    func fetchData(sortDescriptor: NSSortDescriptor?, predicate: NSPredicate?, _ completion: @escaping (Result<[TodoItem], TodoError>) -> Void) {
+    func fetchData(sortDescriptor: NSSortDescriptor?, predicate: NSPredicate?, _ completion: @escaping (Result<[TodoItem], DataManagerError>) -> Void) {
         let context = container.viewContext
         // Perform async code on the Main Thread
         context.perform {
@@ -79,13 +86,13 @@ extension CoreDataManager: DataManager {
                 let data = try context.fetch(request)
                 completion(.success(data))
             } catch {
-                completion(.failure(.errorMessage(msg: "Error to fetch Core Data items")))
+                completion(.failure(.fetchError(error: error)))
             }
         }
     }
     
     /// Add new TodoItem
-    func addNew(_ completion: @escaping (Result<TodoItem, TodoError>) -> Void) {
+    func addNew(_ completion: @escaping (Result<TodoItem, DataManagerError>) -> Void) {
         let context = container.viewContext
         context.performAndWait {
             let newItem = TodoItem(context: context)
@@ -107,7 +114,7 @@ extension CoreDataManager: DataManager {
                     try context.save()
                 }
             } catch {
-                throw TodoError.errorMessage(msg: "Error to save Core Data: \(error.localizedDescription)")
+                throw DataManagerError.unexpectedError(error: error)
             }
         }
     }
@@ -123,7 +130,7 @@ extension CoreDataManager: DataManager {
             do {
                 try context.save()
             } catch {
-                throw TodoError.batchInsertError
+                throw DataManagerError.insertError
             }
         }
     }
@@ -143,7 +150,7 @@ extension CoreDataManager: DataManager {
             do {
                 try context.save()
             } catch {
-                throw TodoError.batchDeleteError
+                throw DataManagerError.deleteError
             }
         }
     }
