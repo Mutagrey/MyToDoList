@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - TodoError
-enum TodoError: Error {
+enum TodoError: Error, Sendable {
     case error(error: Error)
 }
 
@@ -26,7 +26,7 @@ extension TodoError: LocalizedError {
 }
 
 // MARK: - APIError
-enum APIError: Error {
+enum APIError: Error, Sendable {
     case invalidURL
     case requestError(error: Error)
     case missingData
@@ -49,7 +49,7 @@ extension APIError: LocalizedError {
 }
 
 // MARK: - DataManagerError
-enum DataManagerError: Error {
+enum DataManagerError: Error, Sendable {
     case creationError
     case insertError
     case deleteError

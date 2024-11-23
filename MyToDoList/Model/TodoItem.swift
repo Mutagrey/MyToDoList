@@ -7,6 +7,18 @@
 
 import CoreData
 
+// MARK: - Core Data
+//
+///// Managed object subclass for the Todo entity.
+//final public class TodoItem: NSManagedObject {
+//    @NSManaged public var title: String?
+//    @NSManaged public var taskDescription: String?
+//    @NSManaged public var createdAt: Date?
+//    @NSManaged public var isCompleted: Bool
+//}
+//
+//extension TodoItem: Identifiable { }
+
 extension TodoItem {
     
     convenience init(serviceItem: TodoServiceItem, context: NSManagedObjectContext) {
@@ -14,7 +26,7 @@ extension TodoItem {
         self.title = serviceItem.todo
         self.taskDescription = ""
         self.isCompleted = serviceItem.completed
-        self.createdAt = .now
+        self.createdAt = Date()
     }
     
     /// TodoItem for use with canvas previews.
@@ -26,7 +38,6 @@ extension TodoItem {
     }
 
     @discardableResult
-    @MainActor
     static func makePreviews(count: Int, context: NSManagedObjectContext) -> [TodoItem] {
         var todos = [TodoItem]()
         let viewContext = context

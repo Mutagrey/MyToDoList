@@ -98,10 +98,12 @@ struct ContentView: View {
                 }
                 .contentShape(.rect)
                 .onTapGesture {
-                    if !isEditing {
-                        router.push(route: .taskDetail(todo: todo))
-                    } else {
-                        selection.insert(todo.id)
+                    withAnimation {
+                        if !isEditing {
+                            router.push(route: .taskDetail(todo: todo))
+                        } else {
+                            toggleSelection(todo)
+                        }
                     }
                 }
             }
@@ -113,6 +115,14 @@ struct ContentView: View {
             } else if vm.isPresentedSearchText && vm.todos.isEmpty {
                 ContentUnavailableView.search
             }
+        }
+    }
+    
+    private func toggleSelection(_ todo: TodoItem) {
+        if let index = selection.firstIndex(where: { $0 == todo.id }) {
+            selection.remove(at: index)
+        } else {
+            selection.insert(todo.id)
         }
     }
 }

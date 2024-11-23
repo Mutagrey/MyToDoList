@@ -5,6 +5,7 @@
 //  Created by Sergey Petrov on 15.11.2024.
 //
 
+import CoreData
 import XCTest
 @testable import MyToDoList
 
@@ -16,9 +17,17 @@ final class MyToDoListTests: XCTestCase {
     
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
-        dataManager = CoreDataManager.mock
+//        let container = NSPersistentContainer(name: TodoEntityModel.main.rawValue)
+//        container.loadPersistentStores { (storeDescription, error) in
+//            if let error = error as NSError? {
+//                XCTFail("Unresolved error \(error), \(error.userInfo)")
+//            }
+//        }
+        dataManager = CoreDataManager.inMemoryInstance()
         apiService = TodoService()
         viewModel = TodoViewModel(dataManager: dataManager, apiService: apiService)
+        // Wait for fetching data
+        wait(for: [], timeout: 5)
     }
 
     override func tearDownWithError() throws {
@@ -29,78 +38,114 @@ final class MyToDoListTests: XCTestCase {
         try super.tearDownWithError()
     }
     
-    func testFetchTodos() throws {
-        
+    func testDataManagerAddTodo() throws {
+        let addExpectation = XCTestExpectation(description: "Add todo")
+        dataManager.addNew { result in
+            addExpectation.fulfill()
+            switch result {
+            case .success(_):
+                XCTAssert(true, "Todo added")
+            case .failure(let failure):
+                XCTFail(failure.localizedDescription)
+            }
+        }
+        wait(for: [addExpectation], timeout: 10.0)
     }
     
-    func testAddNewTodo() throws {
-        viewModel.addNewTodo { todo in
+    func testDataManagerFetchTodos() throws {
+        // Add new item
+        let context = dataManager.container.viewContext
+        _ = TodoItem(context: context)
+        XCTAssertNoThrow(try context.save())
+        // fetch
+        let fetchExpectation = XCTestExpectation(description: "Fetch data")
+        dataManager.fetchData(sortDescriptor: TodoItem.sortDescriptor(by: .date, order: .descending), predicate: TodoItem.predicate(text: nil)) { result in
+            fetchExpectation.fulfill()
+            switch result {
+            case .success(let data):
+                XCTAssertGreaterThan(data.count, 0)
+                XCTAssertEqual(data.count, 1)
+            case .failure(let failure):
+                XCTFail(failure.localizedDescription)
+            }
         }
-        XCTAssertEqual(self.viewModel.todos.count, 1)
-
-        viewModel.addNewTodo { todo in
-        }
-        XCTAssertEqual(self.viewModel.todos.count, 2)
-
+        wait(for: [fetchExpectation], timeout: 10.0)
     }
     
-    func testDeleteTodo() throws {
+    func testDataManagerDeleteTodos() throws {
+        let context = dataManager.container.viewContext
+        // add new todo
+        let todo = TodoItem(context: context)
+        todo.title = "Test todo"
+        todo.taskDescription = "Test task description"
+        todo.createdAt = Date()
+        XCTAssertNoThrow(try context.save())
+        // fetch todos
+        let request = NSFetchRequest<TodoItem>(entityName: "TodoItem")
+        let todos = try context.fetch(request)
+        XCTAssertGreaterThan(todos.count, 0)
+        // Delete todos
+        try dataManager.delete(todos)
+        wait(for: [], timeout: 5.0)
+        // refetch to check deletion
+        let todosAfterDeletion = try context.fetch(request)
+        XCTAssertEqual(todosAfterDeletion.count, 0)
+    }
+    
+    func testViewModelAddTodo() throws {
+        let initialCount = viewModel.todos.count
+        let expectation = XCTestExpectation(description: "Add todo")
         viewModel.addNewTodo { todo in
-            XCTAssertEqual(self.viewModel.todos.count, 1)
+            expectation.fulfill()
+            self.wait(for: [], timeout: 5.0)
+            XCTAssertEqual(self.viewModel.todos.count, initialCount + 1)
         }
-        viewModel.addNewTodo { todo in
-            XCTAssertEqual(self.viewModel.todos.count, 2)
+        wait(for: [expectation], timeout: 5.0)
+        XCTAssertNil(self.viewModel.error)
+        XCTAssertEqual(self.viewModel.showError, false)
+        XCTAssertEqual(self.viewModel.todos.count, initialCount + 1)
+    }
+    
+    func testViewModelFetchTodos() throws {
+        let initialCount = viewModel.todos.count
+        viewModel.fetchTodos(forceToUpdate: false)
+        wait(for: [], timeout: 5.0)
+        XCTAssertNil(self.viewModel.error)
+        XCTAssertEqual(self.viewModel.showError, false)
+        XCTAssertGreaterThanOrEqual(self.viewModel.todos.count, initialCount)
+    }
+    
+    func testViewModelDeleteTodo() throws {
+        let initialCount = viewModel.todos.count
+        for _ in (0..<2) {
+            let expectation = XCTestExpectation(description: "Add todo")
+            viewModel.addNewTodo { todo in
+                expectation.fulfill()
+            }
+            wait(for: [expectation], timeout: 5.0)
         }
-        XCTAssertEqual(self.viewModel.todos.count, 2)
+        XCTAssertNil(self.viewModel.error)
+        XCTAssertEqual(self.viewModel.showError, false)
+        XCTAssertEqual(self.viewModel.todos.count, initialCount + 2)
+        // delete
         viewModel.deleteTodos(self.viewModel.todos)
+        wait(for: [], timeout: 5.0)
         XCTAssertEqual(self.viewModel.todos.count, 0)
     }
     
-    func testSaveTodos() throws {
-        
-    }
-    
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-        XCTAssertEqual(viewModel.todos.count, 0)
-//        XCTAssertEqual(viewModel.fetchFromService, true)
-        
-        viewModel.fetchTodos()
-        XCTAssertEqual(viewModel.showError, false)
-        
-        viewModel.addNewTodo { todo in
-//            XCTAssertEqual(viewModel.todos.count, 31)
-//            viewModel.deleteTodos([todo])
-//            XCTAssertEqual(viewModel.todos.count, 30)
-        }
-//        XCTAssertNoThrow
-    }
-    
     func testAPIService() throws {
+        let expectation = XCTestExpectation(description: "Fetch data")
         apiService.fetchData { result in
+            expectation.fulfill()
             switch result {
             case .success(let data):
+                XCTAssertGreaterThan(data.count, 0)
                 XCTAssertEqual(data.count, 30)
             case .failure(let failure):
-                XCTAssertNoThrow(failure)
+                XCTFail(failure.localizedDescription)
             }
         }
-    }
-    
-    func testDataMAnager() throws {
-        
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-            viewModel.fetchTodos()
-        }
+        wait(for: [expectation], timeout: 10.0)
     }
 
 }

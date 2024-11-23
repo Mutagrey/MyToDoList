@@ -29,6 +29,7 @@
 
 /* Begin PBXFileReference section */
 		4118EC362CED2AB100C780CE /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		416893362CF07ACB000CE75C /* MyToDoList.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = MyToDoList.xctestplan; sourceTree = "<group>"; };
 		419E19A82CE7731200AC5FEB /* MyToDoList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MyToDoList.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		419E19BD2CE7731400AC5FEB /* MyToDoListTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyToDoListTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		419E19C72CE7731400AC5FEB /* MyToDoListUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyToDoListUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -45,6 +46,7 @@
 				Components/KeyboarToolbar.swift,
 				Components/SearchableModifier.swift,
 				Components/TodoToolbar.swift,
+				Model/TodoEntityModel.swift,
 				Model/TodoError.swift,
 				Model/TodoItem.swift,
 				Model/TodoMenu.swift,
@@ -67,6 +69,7 @@
 				Components/KeyboarToolbar.swift,
 				Components/SearchableModifier.swift,
 				Components/TodoToolbar.swift,
+				Model/TodoEntityModel.swift,
 				Model/TodoError.swift,
 				Model/TodoItem.swift,
 				Model/TodoMenu.swift,
@@ -102,11 +105,6 @@
 			path = MyToDoListTests;
 			sourceTree = "<group>";
 		};
-		419E19CA2CE7731400AC5FEB /* MyToDoListUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = MyToDoListUITests;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -137,11 +135,11 @@
 		419E199F2CE7731200AC5FEB = {
 			isa = PBXGroup;
 			children = (
+				416893362CF07ACB000CE75C /* MyToDoList.xctestplan */,
 				4118EC362CED2AB100C780CE /* README.md */,
 				4118EC492CED2EE300C780CE /* Screenshots */,
 				419E19AA2CE7731200AC5FEB /* MyToDoList */,
 				419E19C02CE7731400AC5FEB /* MyToDoListTests */,
-				419E19CA2CE7731400AC5FEB /* MyToDoListUITests */,
 				419E19A92CE7731200AC5FEB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -217,9 +215,6 @@
 			);
 			dependencies = (
 				419E19C92CE7731400AC5FEB /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				419E19CA2CE7731400AC5FEB /* MyToDoListUITests */,
 			);
 			name = MyToDoListUITests;
 			packageProductDependencies = (

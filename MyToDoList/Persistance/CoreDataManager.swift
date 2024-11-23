@@ -11,39 +11,25 @@ final class CoreDataManager {
     
     static let shared = CoreDataManager()
     
+    /// A persistent container to set up the Core Data stack.
+    let container: NSPersistentContainer
+    
     private let inMemory: Bool
 
-    private init(inMemory: Bool = false) {
+    private init(inMemory: Bool = false, container: NSPersistentContainer) {
         self.inMemory = inMemory
-    }
-    
-    /// Create empty CoreDataManager in memory
-    /// - For testing purposes
-    static let mock: CoreDataManager = {
-        let manager = CoreDataManager(inMemory: true)
-        return manager
-    }()
-    
-    @MainActor
-    static let preview: CoreDataManager = {
-        let manager = CoreDataManager(inMemory: true)
-        TodoItem.makePreviews(count: 10, context: manager.container.viewContext)
-        return manager
-    }()
-    
-    /// A persistent container to set up the Core Data stack.
-    lazy var container: NSPersistentContainer = {
-
-        let container = NSPersistentContainer(name: "MyToDoList")
-
-        guard let description = container.persistentStoreDescriptions.first else {
+        self.container = container
+        
+        guard let _ = container.persistentStoreDescriptions.first else {
             fatalError("Failed to retrieve a persistent store description.")
         }
 
         if inMemory {
-            description.url = URL(fileURLWithPath: "/dev/null")
+            let description = NSPersistentStoreDescription()
+            description.type = NSInMemoryStoreType
+            container.persistentStoreDescriptions = [description]
         }
-
+        
         container.loadPersistentStores { storeDescription, error in
             if let error = error as NSError? {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
@@ -55,8 +41,34 @@ final class CoreDataManager {
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         container.viewContext.undoManager = nil
         container.viewContext.shouldDeleteInaccessibleFaults = true
-        return container
-    }()
+    }
+    
+    private init(inMemory: Bool = false, model: TodoEntityModel = .main) {
+        self.inMemory = inMemory
+        self.container = NSPersistentContainer(name: model.rawValue)
+
+        guard let _ = container.persistentStoreDescriptions.first else {
+            fatalError("Failed to retrieve a persistent store description.")
+        }
+
+        if inMemory {
+            let description = NSPersistentStoreDescription()
+            description.type = NSInMemoryStoreType
+            container.persistentStoreDescriptions = [description]
+        }
+        
+        container.loadPersistentStores { storeDescription, error in
+            if let error = error as NSError? {
+                fatalError("Unresolved error \(error), \(error.userInfo)")
+            }
+        }
+        // viewContext properties for refreshing UI.
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.name = "viewContext"
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        container.viewContext.undoManager = nil
+        container.viewContext.shouldDeleteInaccessibleFaults = true
+    }
     
     /// Creates and configures a private queue context.
     private func newTaskContext() -> NSManagedObjectContext {
@@ -72,6 +84,33 @@ final class CoreDataManager {
     }
 }
 
+// MARK: - In memory CoreDataManager instance.
+extension CoreDataManager {
+    
+    /// Create empty CoreDataManager in memory
+    /// - For preview
+    static let preview: CoreDataManager = {
+        let manager = CoreDataManager(inMemory: true)
+        TodoItem.makePreviews(count: 10, context: manager.container.viewContext)
+        return manager
+    }()
+    
+    /// Create empty CoreDataManager in memory
+    /// - For testing purposes
+    static func inMemoryInstance(feedMockData: Bool = false, container: NSPersistentContainer? = nil) -> CoreDataManager {
+        let manager: CoreDataManager
+        if let container {
+            manager = CoreDataManager(inMemory: true, container: container)
+        } else {
+            manager = CoreDataManager(inMemory: true)
+        }
+        if feedMockData {
+            TodoItem.makePreviews(count: 10, context: manager.container.viewContext)
+        }
+        return manager
+    }
+}
+
 // MARK: - DataManager implementation
 extension CoreDataManager: DataManager {
 
@@ -79,7 +118,7 @@ extension CoreDataManager: DataManager {
         let context = container.viewContext
         // Perform async code on the Main Thread
         context.perform {
-            let request = TodoItem.fetchRequest()
+            let request = NSFetchRequest<TodoItem>(entityName: "TodoItem")
             request.sortDescriptors = sortDescriptor.map { [$0] } ?? []
             request.predicate = predicate
             do {
@@ -109,12 +148,12 @@ extension CoreDataManager: DataManager {
     func update() throws {
         let context = container.viewContext
         try context.performAndWait {
-            do {
-                if context.hasChanges {
+            if context.hasChanges {
+                do {
                     try context.save()
+                } catch {
+                    throw DataManagerError.unexpectedError(error: error)
                 }
-            } catch {
-                throw DataManagerError.unexpectedError(error: error)
             }
         }
     }
@@ -137,21 +176,34 @@ extension CoreDataManager: DataManager {
     
     /// Delete Items
     func delete(_ items: [TodoItem]) throws {
-        let context = newTaskContext()
-        let deleteIDs = items.map(\.objectID)
-        // Perform async code on the Main Thread
-        try context.performAndWait {
-            for id in deleteIDs {
-                // Safely fetch the object to delete using its object ID. Because objectID is Sendable.
-                let deleteItem = context.object(with: id)
-                context.delete(deleteItem)
-            }
-            // Save changes
+        let objectIDs = items.map(\.objectID)
+        let backgroundContext = newTaskContext()
+        let context = container.viewContext
+        try backgroundContext.performAndWait {
             do {
-                try context.save()
+                // batch deletion
+                let batchRequest = NSBatchDeleteRequest(objectIDs: objectIDs)
+                let result = try backgroundContext.execute(batchRequest) as? NSBatchDeleteResult
+                // merge changes to the context to reflect deletions
+                if let deletedIDs = result?.result as? [NSManagedObjectID] {
+                    let changes: [AnyHashable: Any] = [NSDeletedObjectsKey: deletedIDs]
+                    NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [context])
+                }
             } catch {
                 throw DataManagerError.deleteError
             }
         }
+//        let objectIDs = items.map(\.objectID)
+//        let context = newTaskContext()
+//        try context.performAndWait {
+//            // Execute the batch delete.
+//            let batchDeleteRequest = NSBatchDeleteRequest(objectIDs: objectIDs)
+//            guard let fetchResult = try? context.execute(batchDeleteRequest),
+//                  let batchDeleteResult = fetchResult as? NSBatchDeleteResult,
+//                  let success = batchDeleteResult.result as? Bool, success
+//            else {
+//                throw DataManagerError.deleteError
+//            }
+//        }
     }
 }

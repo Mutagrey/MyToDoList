@@ -21,7 +21,7 @@ struct TodoItemView: View {
         HStack(alignment: .top) {
             if editMode?.wrappedValue.isEditing == false {
                 statusView
-                    .transition(.asymmetric(insertion: .scale, removal: .scale.combined(with: .opacity)))
+                    .transition(.opacity.combined(with: .scale))
                     .animation(.smooth, value: editMode?.wrappedValue)
             }
             VStack(alignment: .leading, spacing: 6) {
@@ -58,7 +58,7 @@ struct TodoItemView: View {
                 image: Image(systemName: todo.isCompleted ? "checkmark.circle" : "circle")
             )
         ) {
-            Image(systemName: "square.and.arrow.up")
+            Label("Share", systemImage: "square.and.arrow.up")
         }
     }
     

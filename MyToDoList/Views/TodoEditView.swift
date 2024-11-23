@@ -53,7 +53,18 @@ struct TodoEditView: View {
         .padding(.top)
         .padding(.horizontal)
         .onAppear {
-            focusedField = (todo.title ?? "").isEmpty ? .taskDescription : .title
+            focusedField = (todo.title == nil || todo.title?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == true) ? .title : .taskDescription
+        }
+        .onDisappear {
+            if (todo.title == nil || todo.title?.isEmpty == true) &&
+                (todo.taskDescription == nil || todo.taskDescription?.isEmpty == true) {
+                vm.deleteTodos([todo])
+            }
+            if (todo.title == nil || todo.title?.isEmpty == true) &&
+                todo.taskDescription != nil && todo.taskDescription?.isEmpty == false {
+                todo.title = "Untitled"
+            }
+            vm.save()
         }
         .toolbar {
             KeyboardToolbar { vm.save() }

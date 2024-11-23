@@ -80,11 +80,10 @@ final class TodoViewModel: ObservableObject {
         // SortDescriptor and Predicate
         let sort = TodoItem.sortDescriptor(by: setting.sortBy, order: setting.order)
         let predicate = TodoItem.predicate(text: searchText, filter: setting.filter)
-        // fetch data
+        // fetch data (on Main Thread)
         dataManager.fetchData(sortDescriptor: sort, predicate: predicate) { [weak self] result in
             switch result {
             case .success(let data):
-                self?.todos = []
                 self?.todos = data
             case .failure(let failure):
                 self?.error = .error(error: failure)
@@ -98,6 +97,8 @@ final class TodoViewModel: ObservableObject {
     private func fetchTodosWithAPICall() {
         isLoading = true
         apiService.fetchData { [weak self] result in
+            // MARK: Important
+            // i can pass the result to the Main thread from another because Result<TodoServiceItem, APIError> is Sendable
             DispatchQueue.main.async {
                 switch result {
                 case .success(let data):
@@ -129,8 +130,8 @@ extension TodoViewModel {
         dataManager.addNew { [weak self] result in
             switch result {
             case .success(let data):
-                self?.fetchTodosWithDataManager()
                 completion(data)
+                self?.fetchTodosWithDataManager()
             case .failure(let failure):
                 self?.error = .error(error: failure)
                 self?.showError = true
