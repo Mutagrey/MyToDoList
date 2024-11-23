@@ -38,6 +38,7 @@ extension TodoItem {
             todo.taskDescription = "Some description for TodoItem\(index)"
             todos.append(todo)
         }
+        try? context.save()
         return todos
     }
     
